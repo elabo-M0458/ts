@@ -1,19 +1,12 @@
+"use client";
+
+import { Login } from "./login";
+
 export default function Home() {
+  
   return (
     <>
-      <Name name = "田中"/>
+      <Login/>
     </>
-  );
-}
-
-type NameType = {
-  name : string
-};
-
-const Name = ({name} : NameType) => {
-  return(
-      <h1>
-          {name}さん、ようこそ！
-      </h1>
   );
 }
