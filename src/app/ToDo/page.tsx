@@ -12,8 +12,6 @@ export default function ToDo() {
 
   return (
     <>
-        <h1>ToDoリスト</h1><br/>
-        <h3>タスク一覧</h3><br/>
         <Register/>
         <button onClick={goBack}></button>
     </>      

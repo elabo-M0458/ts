@@ -1,0 +1,34 @@
+@startuml
+class Users {
+    +id : string
+    firstName : string
+    lastName : string
+    password : number
+    createDate : datetime
+    uppdateDate : datetime
+}
+
+Users : +id(PK)
+
+class Tasks {
+    +id : string
+    taskName : string
+    isCompleted : boolean
+    createDate : datetime
+    uppdateDate : datetime
+}
+
+Tasks : +id (PK)
+Tasks : userId (FK)
+
+class Comments{
+    +id : string
+    commentText : string
+    isCompleted : boolean
+    createDate : datetime
+    uppdateDate : datetime
+}
+
+Comments : +id(PK)
+Comments : taskId(FK)
+@enduml
