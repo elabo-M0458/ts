@@ -4,8 +4,8 @@ class Users {
     firstName : string
     lastName : string
     password : number
-    createDate : datetime
-    uppdateDate : datetime
+    created_at : datetime
+    updated_at : datetime
 }
 
 Users : +id(PK)
@@ -14,8 +14,10 @@ class Tasks {
     +id : string
     taskName : string
     isCompleted : boolean
-    createDate : datetime
-    uppdateDate : datetime
+    created_by : string
+    updated_by : string
+    created_at : datetime
+    updated_at : datetime
 }
 
 Tasks : +id (PK)
@@ -25,8 +27,10 @@ class Comments{
     +id : string
     commentText : string
     isCompleted : boolean
-    createDate : datetime
-    uppdateDate : datetime
+    created_by : string
+    updated_by : string
+    created_at : datetime
+    updated_at : datetime
 }
 
 Comments : +id(PK)
