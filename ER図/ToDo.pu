@@ -1,0 +1,8 @@
+@startuml erd
+' tables.pu はこのファイルと同じディレクトリに存在している想定です。
+!include tables.pu
+
+Users ||-o{ Tasks
+Tasks ||-o{ Comments
+
+@enduml
