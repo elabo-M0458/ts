@@ -16,11 +16,11 @@ COPY yarn*.lock ./
 # 依存関係をインストール
 RUN yarn
 
-# Prisma のコード生成
-RUN npx prisma generate
-
 # アプリケーションのソースコードをコピー
 COPY . .
+
+# Prisma のコード生成
+RUN npx prisma generate
 
 # コンテナ起動時のデフォルトコマンド
 CMD ["yarn", "start"]

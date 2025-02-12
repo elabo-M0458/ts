@@ -1,6 +1,6 @@
 services:
   nestApp:
-    build: Dockerfile ./
+    build: ./Dockerfile 
     command: ["yarn", "start"]
     ports:
       - "3000:3000"
