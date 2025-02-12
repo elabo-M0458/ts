@@ -3,7 +3,8 @@ class Users {
     +id : string
     firstName : string
     lastName : string
-    password : number
+    password : string
+    e-mail : string
     created_at : datetime
     updated_at : datetime
 }
