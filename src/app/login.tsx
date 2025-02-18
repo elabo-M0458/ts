@@ -3,17 +3,10 @@
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Box, Button, TextField } from "@mui/material";
+import axios from "axios";
+import { LoginCheckDto } from "./dto/loginCheckDto";
 
-export const Login= () =>{
-
-    const accountInfo = [["tokei" , "1234"],["sakura" , "5678"],["hanabi" , "9101"]];
-
-    /*ER図で使用
-    type Users = {
-        userId : string,
-        taskId : string[]
-    }
-    */
+export const Login=  () =>{
 
     const [userId , setUserId] = useState<string>("");
     const [password , setPassword] = useState<string>("");
@@ -29,15 +22,22 @@ export const Login= () =>{
         setPassword(event.target.value);
     }
 
-    function inputCheck() : void{
-        for(let i = 0; i < accountInfo.length ; i++){
-            if(accountInfo[i][0] === userId && accountInfo[i][1] === password){
-                router.push('/ToDo/?id=' + accountInfo[i][0]);
-            }else{
-                setNotLoginMsg("ログイン失敗");
-                setUserId("");
-                setPassword("");
-            }
+    async function inputCheck() : Promise<void> {
+
+        const loginCheckDto : LoginCheckDto = {eMail : userId , password : password}
+        
+        const response = await axios.post(
+            "http://localhost:5000/login"
+            , loginCheckDto
+            ,{headers:{'Content-Type': 'application/json',}}
+        )
+
+        if(response.data){
+            router.push('/ToDo/?id=' + userId);
+        }else{
+            setNotLoginMsg("ログイン失敗");
+            setUserId("");
+            setPassword("");
         }
     }
 
