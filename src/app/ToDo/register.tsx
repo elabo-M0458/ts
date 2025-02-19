@@ -33,12 +33,12 @@ export const Register = () => {
     const [isComment,setIsCommnet] = useState<boolean>(false);
     const [dialogOpen , setDialogOpen] = useState(false);
     const searchParams = useSearchParams();
-    const userId = searchParams.get('userId') as string;
-    const apiUrl = "http://localhost:5000/users/" + userId + "/tasks";
+    const userId = searchParams.get('userId') as string;    
+    const baseUrl = `http://localhost:5000/users/${userId}/tasks`;    
 
     useEffect(() => {
         const getTask = async (): Promise<Task[]> => {
-            const response = await axios.get<Task[]>(apiUrl)
+            const response = await axios.get<Task[]>(baseUrl)
             return response.data;
         }
         getTask().then(setTaskList);
@@ -55,8 +55,8 @@ export const Register = () => {
             isCompleted : !task.isCompleted
         }
 
-        const responce = await axios.patch(
-            apiUrl + "/" + task.id,
+        const response = await axios.patch(
+            baseUrl + `/${task.id}`,
             updatedTaskDto
         )
         task.isCompleted = updatedTaskDto.isCompleted;
@@ -77,17 +77,12 @@ export const Register = () => {
         }
 
         const response = await axios.post(
-            apiUrl
+            baseUrl
             ,registerTaskDto
             ,{headers:{'Content-Type': 'application/json',}}
         ) 
 
-        const task: Task = {
-            id: response.data.id,
-            taskName: response.data.taskName,
-            isCompleted: response.data.isCompleted,
-            comment: null
-        };
+        const task: Task = {...response.data , comment: null};
 
         toast.success(taskMassage + 'を登録しました。');
         setTaskList([...taskList, task]);
@@ -98,7 +93,7 @@ export const Register = () => {
     const deleteTask = async (taskId: string , taskName : string) => {
 
         const response = await axios.delete(
-            apiUrl + "/" + taskId
+            baseUrl + `/${taskId}`
         )
 
         toast.success(taskName + 'を、削除しました。')
@@ -127,7 +122,7 @@ export const Register = () => {
         }
 
         const responce  = await axios.patch(
-            apiUrl + "/" + editingTaskId,
+            baseUrl + `/${editingTaskId}`,
             updatedTaskDto
         )
 
@@ -161,7 +156,7 @@ export const Register = () => {
         }
 
         const responce = await axios.post(
-            apiUrl + "/" + editingTaskId + "/comments"
+            baseUrl + `/${editingTaskId}/comments`
             ,createdCommentDto
             ,{headers:{'Content-Type': 'application/json',}}
         )
@@ -187,10 +182,8 @@ export const Register = () => {
     };
 
     const deleteComment = async (taskId: string, commentId: string) => {
-
-        console.log(commentId)
         const responce = await axios.delete(
-             apiUrl + "/" + taskId + "/comments/" + commentId
+             baseUrl + `/${taskId}/comments/${commentId}`
         )
 
         const updatedTaskList = taskList.map((task) => {
