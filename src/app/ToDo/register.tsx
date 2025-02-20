@@ -1,10 +1,14 @@
 "use client";
 
-import { useRouter } from 'next/navigation';
-import { useState } from "react";
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from "react";
 import { AppBar, Box, Checkbox, Dialog, DialogActions, DialogContentText, DialogTitle, TextField, Toolbar } from "@mui/material";
 import { Card, CardContent, Typography, CardActions, Button } from '@mui/material';
 import toast, { Toaster } from 'react-hot-toast'
+import axios from 'axios';
+import { RegisterTaskDto } from './registerTaskDto';
+import { UpdatedTaskDto } from './updatedTaskDto';
+import { CreatedCommentDto } from './createCommentDto';
 
 export const Register = () => {
     
@@ -15,8 +19,8 @@ export const Register = () => {
 
     type Task = {
         id: string;
-        task: string;
-        isComplete: boolean;
+        taskName: string;
+        isCompleted: boolean;
         comment: Comment[] | null;
     };
 
@@ -25,60 +29,106 @@ export const Register = () => {
     const [taskList, setTaskList] = useState<Task[]>([]);
     const [isEdit, setIsEdit] = useState<boolean>(false);
     const [editingTaskId, setEditingTaskId] = useState<string>('');
+    const [editingTaskCompleted,setEditingTaskCompleted] = useState<boolean>(false);
     const [isComment,setIsCommnet] = useState<boolean>(false);
     const [dialogOpen , setDialogOpen] = useState(false);
+    const searchParams = useSearchParams();
+    const userId = searchParams.get('userId') as string;    
+    const baseUrl = `http://localhost:5000/users/${userId}/tasks`;    
+
+    useEffect(() => {
+        const getTask = async (): Promise<Task[]> => {
+            const response = await axios.get<Task[]>(baseUrl)
+            return response.data;
+        }
+        getTask().then(setTaskList);
+    },[])
 
     const handleChangeTaskMassage = (event: React.ChangeEvent<HTMLInputElement>) => {
         setTaskMassage(event.target.value);
     };
 
-    const handleChangeCheckBox = (task: Task) => {
-        task.isComplete = !task.isComplete;
+    const handleChangeCheckBox = async (task: Task) => {
+
+        const updatedTaskDto : UpdatedTaskDto = {
+            taskName: task.taskName,
+            isCompleted : !task.isCompleted
+        }
+
+        const response = await axios.patch(
+            baseUrl + `/${task.id}`,
+            updatedTaskDto
+        )
+        task.isCompleted = updatedTaskDto.isCompleted;
         setTaskList([...taskList]);
     };
 
-    const addTask = () => {
+    const addTask = async () => {
+        
         if (taskMassage === "") {
             return;
         }
 
-        const task: Task = {
-            id: (taskList.length+1).toString(),
-            task: taskMassage,
-            isComplete: false,
-            comment: null
-        };
+        const registerTaskDto : RegisterTaskDto = {
+            taskName: taskMassage,
+            createdBy: userId,
+            updatedBy: userId,
+            userId: userId
+        }
+
+        const response = await axios.post(
+            baseUrl
+            ,registerTaskDto
+            ,{headers:{'Content-Type': 'application/json',}}
+        ) 
+
+        const task: Task = {...response.data , comment: null};
 
         toast.success(taskMassage + 'を登録しました。');
         setTaskList([...taskList, task]);
         setTaskMassage('');
+
     };
 
-    const deleteTask = (id: string) => {        
-        setTaskList(taskList.filter((element) =>{ 
-            if(element.id === id){
-                toast.success(element.task + 'を、削除しました。');
-                return false;
-            }
-            return true;
-        }));
-        setDialogOpen(false);
+    const deleteTask = async (taskId: string , taskName : string) => {
+
+        const response = await axios.delete(
+            baseUrl + `/${taskId}`
+        )
+
+        toast.success(taskName + 'を、削除しました。')
+
+        setTaskList(taskList.filter((task) =>{
+            return task.id !== taskId
+        }))
+        setDialogOpen(false)
     };
 
     const handleEditTask = (task: Task) => {
-        setTaskMassage(task.task);
+        setTaskMassage(task.taskName);
         setIsEdit(true);
         setEditingTaskId(task.id);
+        setEditingTaskCompleted(task.isCompleted);
     };
 
-    const confirmEditTask = () => {
+    const confirmEditTask = async () => {
         if (editingTaskId === '') {
             return;
         }
 
+        const updatedTaskDto : UpdatedTaskDto = {
+            taskName: taskMassage,
+            isCompleted : editingTaskCompleted
+        }
+
+        const responce  = await axios.patch(
+            baseUrl + `/${editingTaskId}`,
+            updatedTaskDto
+        )
+
         const updatedTaskList = taskList.map((task) => {
             if (task.id === editingTaskId) {
-                return { ...task, task: taskMassage };
+                return { ...task, taskName: responce.data.taskName };
             }
             return task;
         });
@@ -94,16 +144,26 @@ export const Register = () => {
         setEditingTaskId(task.id);
     }
 
-    const addComment = () => {
+    const addComment = async () => {
 
         if(taskMassage === ""){
             setIsCommnet(false);
             return;
         }
 
-        const newComment : Comment = {
-            commentId : Date.now().toString(),
+        const createdCommentDto : CreatedCommentDto = {
             commentText : taskMassage
+        }
+
+        const responce = await axios.post(
+            baseUrl + `/${editingTaskId}/comments`
+            ,createdCommentDto
+            ,{headers:{'Content-Type': 'application/json',}}
+        )
+
+        const newComment : Comment = {
+            commentId : responce.data.id,
+            commentText : responce.data.commentText
         }
 
         const updatedTaskList = taskList.map((task) => { 
@@ -121,7 +181,11 @@ export const Register = () => {
         setTaskMassage("");
     };
 
-    const deleteComment = (taskId: string, commentId: string) => {
+    const deleteComment = async (taskId: string, commentId: string) => {
+        const responce = await axios.delete(
+             baseUrl + `/${taskId}/comments/${commentId}`
+        )
+
         const updatedTaskList = taskList.map((task) => {
             if (task.id === taskId && task.comment) {
                 const updatedComments = task.comment.filter((com) => com.commentId !== commentId);
@@ -129,7 +193,6 @@ export const Register = () => {
             }
             return task;
         });
-
         setTaskList(updatedTaskList);
     };
 
@@ -286,11 +349,11 @@ export const Register = () => {
 
                             <Typography variant="h4"
                                 sx={{ 
-                                    textDecoration: task.isComplete ? 'line-through' : 'none',
-                                    color: task.isComplete ? 'text.disabled' : 'inherit', 
+                                    textDecoration: task.isCompleted ? 'line-through' : 'none',
+                                    color: task.isCompleted ? 'text.disabled' : 'inherit', 
                                   }}
                             >
-                                {task.task}
+                                {task.taskName}
                             </Typography>
                             
                         </Box>
@@ -333,7 +396,7 @@ export const Register = () => {
                                     もう元に戻すことはできません。本当によろしいですか？
                                 </DialogContentText>
                                 <DialogActions>
-                                    <Button onClick={() => deleteTask(task.id)} sx={{ fontSize: "18px" }}>削除</Button>
+                                    <Button onClick={() => deleteTask(task.id,task.taskName)} sx={{ fontSize: "18px" }}>削除</Button>
                                     <Button onClick={() =>handleCloseDaialog()} sx={{ fontSize: "18px" }} autoFocus>キャンセル</Button>
                                 </DialogActions>
                             </Dialog>

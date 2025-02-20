@@ -3,41 +3,41 @@
 import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import { Box, Button, TextField } from "@mui/material";
+import axios from "axios";
+import { LoginCheckDto } from "./dto/loginCheckDto";
 
-export const Login= () =>{
+export const Login=  () =>{
 
-    const accountInfo = [["tokei" , "1234"],["sakura" , "5678"],["hanabi" , "9101"]];
-
-    /*ER図で使用
-    type Users = {
-        userId : string,
-        taskId : string[]
-    }
-    */
-
-    const [userId , setUserId] = useState<string>("");
+    const [eMail , setEMail] = useState<string>("");
     const [password , setPassword] = useState<string>("");
     const [notLoginMsg, setNotLoginMsg] = useState<string>("");
 
     const router = useRouter();
 
     const handleChangeId = (event: React.ChangeEvent<HTMLInputElement>) =>{
-        setUserId(event.target.value);
+        setEMail(event.target.value);
     }
 
     const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) =>{
         setPassword(event.target.value);
     }
 
-    function inputCheck() : void{
-        for(let i = 0; i < accountInfo.length ; i++){
-            if(accountInfo[i][0] === userId && accountInfo[i][1] === password){
-                router.push('/ToDo/?id=' + accountInfo[i][0]);
-            }else{
-                setNotLoginMsg("ログイン失敗");
-                setUserId("");
-                setPassword("");
-            }
+    async function inputCheck() : Promise<void> {
+
+        const loginCheckDto : LoginCheckDto = {eMail : eMail , password : password}
+        
+        const response = await axios.post(
+            "http://localhost:5000/login"
+            , loginCheckDto
+            ,{headers:{'Content-Type': 'application/json',}}
+        )
+
+        if(response.data){
+            router.push(`/ToDo/?userId=${encodeURIComponent(response.data)}`);
+        }else{
+            setNotLoginMsg("ログイン失敗");
+            setEMail("");
+            setPassword("");
         }
     }
 
@@ -56,9 +56,9 @@ export const Login= () =>{
             <h1>ToDoアプリログイン</h1>
             <TextField
                 id="outlined-basic"
-                label="ユーザーID"
+                label="メールアドレス"
                 variant="outlined"
-                value={userId}
+                value={eMail}
                 onChange={handleChangeId}
                 sx={{ mb: 2 }} // 下に余白を作る
             />
