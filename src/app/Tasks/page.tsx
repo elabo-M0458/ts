@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from 'next/navigation'; 
-import { Register } from './register';
+import { Task } from './components/Task';
 
-export default function ToDo() {
+export default function Tasks() {
   const router = useRouter();
 
   const goBack = () => {
@@ -12,7 +12,7 @@ export default function ToDo() {
 
   return (
     <>
-        <Register/>
+        <Task/>
         <button onClick={goBack}></button>
     </>      
   );

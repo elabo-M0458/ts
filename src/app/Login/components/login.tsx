@@ -1,45 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from 'next/navigation';
 import { Box, Button, TextField } from "@mui/material";
-import axios from "axios";
-import { LoginCheckDto } from "./dto/loginCheckDto";
+import { useLogin } from "../hooks/useLogin";
 
 export const Login=  () =>{
 
-    const [eMail , setEMail] = useState<string>("");
-    const [password , setPassword] = useState<string>("");
-    const [notLoginMsg, setNotLoginMsg] = useState<string>("");
-
-    const router = useRouter();
-
-    const handleChangeId = (event: React.ChangeEvent<HTMLInputElement>) =>{
-        setEMail(event.target.value);
-    }
-
-    const handleChangePassword = (event: React.ChangeEvent<HTMLInputElement>) =>{
-        setPassword(event.target.value);
-    }
-
-    async function inputCheck() : Promise<void> {
-
-        const loginCheckDto : LoginCheckDto = {eMail : eMail , password : password}
-        
-        const response = await axios.post(
-            "http://localhost:5000/login"
-            , loginCheckDto
-            ,{headers:{'Content-Type': 'application/json',}}
-        )
-
-        if(response.data){
-            router.push(`/ToDo/?userId=${encodeURIComponent(response.data)}`);
-        }else{
-            setNotLoginMsg("ログイン失敗");
-            setEMail("");
-            setPassword("");
-        }
-    }
+    const { eMail, password, notLoginMsg, handleChangeId, handleChangePassword, inputCheck } = useLogin();
 
     return(
         <>
